@@ -1,0 +1,71 @@
+<html>
+<title>
+Chat app
+</title>
+<script type="text/javascript">
+console.log("naank");</script>
+<link rel="stylesheet" href="css/index.css">
+<body>
+<div class="chat">
+<input type="text" placeholder="Enter your name" class="chat-name" value="mayank">
+<div class="chat-messages">
+</div>
+<textarea placeholder="Type your message..."></textarea>
+Status: <span id="status">Idle</span>
+
+</div>
+<script src="http:/127.0.0.1:8080/socket.io/socket.io.js">
+</script>
+<script type="text/javascript">
+	try {
+		var socket = io.connect("http://127.0.0.1:8080");
+	}catch(e){
+		console.log(e);
+	}
+	var getNode = function(s){
+		return document.querySelector(s);
+	};
+	var textarea = getNode('.chat textarea'),
+	messages = getNode(".chat-messages");
+	Name = getNode('.chat-name'),
+	status = document.getElementById("status");
+
+	socket.on('output',function(data){
+		if (data.length){
+			for(var x=0;x<data.length;x+=1){
+				var message = document.createElement("div");
+				message.setAttribute('class',"chat-message");
+				message.textContent =  data[x].name + ": " + data[x].message;
+				messages.appendChild(message);
+				messages.insertBefore(message,messages.firstChild);
+			}
+		}
+
+
+	});
+
+	var set_status = function(s){
+		document.getElementById("status").innerHTML = s;
+
+		if (s !== "Idle"){
+			var delay = setTimeout(function(){
+				set_status("Idle");
+				clearInterval(delay);
+			},3000);
+		}
+
+	};
+	socket.on('status',function(data){
+		set_status(data);
+	})
+	textarea.addEventListener('keydown',function(event){
+		if (event.which === 13 && event.shiftKey === false){
+			socket.emit('input',{name: Name.value,message:this.value});
+			textarea.value = "";
+		}
+	});
+
+
+</script>
+</body>
+</html>
